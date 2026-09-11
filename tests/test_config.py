@@ -76,3 +76,89 @@ def test_multi_monitor_coordinate_sanitization(tmp_path: Path):
     assert safe_y == 100
     assert mgr.settings.overlay_x == 60
     assert mgr.settings.overlay_y == 100
+
+
+def test_new_feature_settings():
+    settings = AppSettings(
+        chat_provider="kick",
+        kick_channel="xqc",
+        emotes_enabled=True,
+        obs_enabled=True,
+        obs_port=4455,
+        hud_enabled=True,
+        hud_x=100,
+        hud_y=50,
+    )
+    settings.validate()
+    assert settings.chat_provider == "kick"
+    assert settings.kick_channel == "xqc"
+    assert settings.emotes_enabled is True
+    assert settings.obs_enabled is True
+    assert settings.obs_port == 4455
+    assert settings.hud_enabled is True
+    assert settings.hud_x == 100
+    assert settings.hud_y == 50
+
+
+def test_v13_gsi_hype_qa_settings():
+    settings = AppSettings()
+    # Test default values
+    assert settings.gsi_enabled is False
+    assert settings.gsi_port == 31337
+    assert settings.clutch_mode_enabled is True
+    assert settings.clutch_dim_opacity == 0.0
+    assert settings.clutch_health_threshold == 25
+
+    assert settings.hype_detector_enabled is True
+    assert settings.hype_window_seconds == 15
+    assert settings.hype_threshold_rate == 3.5
+    assert settings.hype_auto_clip is False
+    assert settings.hype_cooldown_seconds == 60
+
+    assert settings.qa_deck_enabled is False
+    assert settings.qa_max_items == 20
+    assert settings.qa_auto_expire_seconds == 300
+
+
+def test_v13_settings_validation_clamping():
+    settings = AppSettings(
+        gsi_port=80,  # below 1024
+        clutch_dim_opacity=-0.5,  # below 0.0
+        clutch_health_threshold=150,  # above 100
+        hype_window_seconds=1,  # below 3
+        hype_threshold_rate=0.1,  # below 0.5
+        hype_cooldown_seconds=1000,  # above 600
+        qa_max_items=500,  # above 100
+        qa_auto_expire_seconds=10,  # below 30
+    )
+    settings.validate()
+    assert settings.gsi_port == 1024
+    assert settings.clutch_dim_opacity == 0.0
+    assert settings.clutch_health_threshold == 100
+    assert settings.hype_window_seconds == 3
+    assert settings.hype_threshold_rate == 0.5
+    assert settings.hype_cooldown_seconds == 600
+    assert settings.qa_max_items == 100
+    assert settings.qa_auto_expire_seconds == 30
+
+    # Test upper bound clamps
+    settings2 = AppSettings(
+        gsi_port=99999,
+        clutch_dim_opacity=2.5,
+        clutch_health_threshold=0,
+        hype_window_seconds=300,
+        hype_threshold_rate=500.0,
+        hype_cooldown_seconds=1,
+        qa_max_items=2,
+        qa_auto_expire_seconds=9999,
+    )
+    settings2.validate()
+    assert settings2.gsi_port == 65535
+    assert settings2.clutch_dim_opacity == 1.0
+    assert settings2.clutch_health_threshold == 1
+    assert settings2.hype_window_seconds == 120
+    assert settings2.hype_threshold_rate == 100.0
+    assert settings2.hype_cooldown_seconds == 5
+    assert settings2.qa_max_items == 5
+    assert settings2.qa_auto_expire_seconds == 3600
+

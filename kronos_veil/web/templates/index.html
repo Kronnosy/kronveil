@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kronos Veil Companion</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(22, 27, 44, 0.85);
+      --card-border: rgba(0, 229, 255, 0.2);
+      --accent: #00e5ff;
+      --accent-glow: rgba(0, 229, 255, 0.35);
+      --text: #f0f6fc;
+      --text-muted: #8b949e;
+      --danger: #ff4757;
+      --warning: #ffa502;
+      --success: #2ed573;
+      --twitch: #9146ff;
+      --kick: #53fc18;
+      --yt: #ff0000;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      overflow-x: hidden;
+    }
+    header {
+      background: rgba(11, 15, 25, 0.95);
+      backdrop-filter: blur(12px);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+    .header-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+    .status-dot.online { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    
+    .nav-tabs {
+      display: flex;
+      background: rgba(16, 21, 35, 0.9);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .nav-tab {
+      flex: 1;
+      padding: 12px 4px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .nav-tab.active {
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+      background: rgba(0, 229, 255, 0.05);
+    }
+    .tab-badge {
+      background: #ea580c;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 10px;
+      margin-left: 3px;
+      vertical-align: middle;
+    }
+
+    main {
+      flex: 1;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: flex; flex-direction: column; gap: 14px; }
+    
+    /* Deck Grid */
+    .deck-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .deck-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: transform 0.1s, background 0.2s, border-color 0.2s;
+    }
+    .deck-btn:active {
+      transform: scale(0.96);
+    }
+    .deck-btn .btn-icon { font-size: 1.8rem; }
+    .deck-btn .btn-sub { font-size: 0.72rem; color: var(--text-muted); font-weight: 500; }
+    .deck-btn.active {
+      border-color: var(--accent);
+      background: rgba(0, 229, 255, 0.15);
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    .deck-btn.live {
+      border-color: var(--danger);
+      background: rgba(255, 71, 87, 0.18);
+    }
+
+    /* Q&A Deck Styles */
+    .qa-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .qa-header h3 {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .qa-clear-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .qa-clear-btn:hover {
+      background: rgba(239, 68, 68, 0.25);
+      color: #f87171;
+    }
+    .qa-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .qa-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .qa-card.answered {
+      opacity: 0.65;
+      border-color: rgba(46, 213, 115, 0.4);
+      background: rgba(16, 35, 24, 0.6);
+    }
+    .qa-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+    .qa-user { font-weight: 700; color: #f1f5f9; }
+    .qa-time { font-size: 0.72rem; color: var(--text-muted); }
+    .qa-text {
+      font-size: 0.92rem;
+      line-height: 1.35;
+      color: #e2e8f0;
+    }
+    .qa-card.answered .qa-text {
+      text-decoration: line-through;
+      color: #94a3b8;
+    }
+    .qa-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .qa-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .qa-btn-answer {
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid #22c55e;
+      color: #4ade80;
+    }
+    .qa-btn-answer:active { background: #22c55e; color: #fff; }
+    .qa-btn-dismiss {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #f87171;
+    }
+    .qa-btn-dismiss:active { background: #ef4444; color: #fff; }
+
+    /* Telemetry & Gauges */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .stat-title { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+    .stat-value { font-size: 1.25rem; font-weight: 800; color: var(--accent); margin-top: 4px; }
+    
+    /* Live Chat Container */
+    #chat-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      height: calc(100vh - 160px);
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .chat-row {
+      font-size: 0.88rem;
+      line-height: 1.35;
+      word-break: break-word;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .plat-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 1px 4px;
+      border-radius: 3px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .plat-twitch { background: var(--twitch); color: #fff; }
+    .plat-kick { background: var(--kick); color: #000; }
+    .plat-youtube { background: var(--yt); color: #fff; }
+    .user-name { font-weight: 700; margin-right: 4px; }
+
+    /* PIN Modal */
+    #pin-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(11, 15, 25, 0.95);
+      backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 20px;
+    }
+    .modal-box {
+      background: var(--card-bg);
+      border: 1px solid var(--accent);
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 320px;
+      text-align: center;
+      box-shadow: 0 0 24px var(--accent-glow);
+    }
+    .modal-box h2 { font-size: 1.2rem; margin-bottom: 8px; color: var(--accent); }
+    .modal-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; }
+    .pin-input {
+      width: 100%;
+      font-size: 1.8rem;
+      text-align: center;
+      letter-spacing: 6px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--accent);
+      background: rgba(0, 0, 0, 0.4);
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #000;
+      font-weight: 800;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PIN Modal -->
+  <div id="pin-modal" style="display: none;">
+    <div class="modal-box">
+      <h2>✦ KRONOS VEIL</h2>
+      <p>Enter 4-Digit Companion PIN</p>
+      <input type="password" id="pin-input" class="pin-input" maxlength="6" inputmode="numeric" placeholder="****">
+      <button class="submit-btn" onclick="savePin()">PAIR DEVICE</button>
+    </div>
+  </div>
+
+  <header>
+    <div class="brand">
+      <span>✦</span> KRONOS VEIL
+    </div>
+    <div class="header-pills">
+      <div id="clutch-status-pill" class="status-pill" style="display: none; background: rgba(234, 88, 12, 0.25); color: #fdba74; border: 1px solid #ea580c;">
+        🛡️ CLUTCH
+      </div>
+      <div id="bomb-status-pill" class="status-pill" style="display: none; background: #dc2626; color: #fff;">
+        💣 BOMB
+      </div>
+      <div class="status-pill">
+        <div id="conn-dot" class="status-dot"></div>
+        <span id="conn-text">Connecting...</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav-tabs">
+    <div class="nav-tab active" onclick="switchTab('deck')">🎮 DECK</div>
+    <div class="nav-tab" onclick="switchTab('qa')">
+      ❓ Q&A <span id="qa-tab-badge" class="tab-badge" style="display: none;">0</span>
+    </div>
+    <div class="nav-tab" onclick="switchTab('chat')">💬 CHAT</div>
+    <div class="nav-tab" onclick="switchTab('stats')">📊 STATS</div>
+  </nav>
+
+  <main>
+    <!-- DECK TAB -->
+    <div id="tab-deck" class="tab-content active">
+      <div class="deck-grid">
+        <button id="btn-lock" class="deck-btn" onclick="triggerAction('toggle_lock')">
+          <span class="btn-icon">🔒</span>
+          <span>Lock Mode</span>
+          <span id="sub-lock" class="btn-sub">Edit Mode</span>
+        </button>
+
+        <button id="btn-clickthru" class="deck-btn" onclick="triggerAction('toggle_clickthrough')">
+          <span class="btn-icon">🖱️</span>
+          <span>Click-Through</span>
+          <span id="sub-clickthru" class="btn-sub">Disabled</span>
+        </button>
+
+        <button id="btn-stream" class="deck-btn" onclick="triggerAction('obs_toggle_stream')">
+          <span class="btn-icon">📡</span>
+          <span>OBS Stream</span>
+          <span id="sub-stream" class="btn-sub">Offline</span>
+        </button>
+
+        <button id="btn-record" class="deck-btn" onclick="triggerAction('obs_toggle_record')">
+          <span class="btn-icon">⏺️</span>
+          <span>OBS Record</span>
+          <span id="sub-record" class="btn-sub">Stopped</span>
+        </button>
+
+        <button class="deck-btn" onclick="triggerAction('clear_chat')">
+          <span class="btn-icon">🧹</span>
+          <span>Clear Chat</span>
+          <span class="btn-sub">Purge Overlay</span>
+        </button>
+
+        <button class="deck-btn" onclick="triggerAction('test_alert')">
+          <span class="btn-icon">⭐</span>
+          <span>Test Alert</span>
+          <span class="btn-sub">Mention / Toast</span>
+        </button>
+      </div>
+
+      <!-- OBS Scene Switcher Quick Bar -->
+      <div id="scenes-box" style="display: none;">
+        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-bottom: 8px;">OBS SCENES</div>
+        <div id="scenes-list" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;"></div>
+      </div>
+    </div>
+
+    <!-- Q&A DECK TAB -->
+    <div id="tab-qa" class="tab-content">
+      <div class="qa-header">
+        <h3>Smart Q&A Deck</h3>
+        <button class="qa-clear-btn" onclick="clearQuestions()">Clear All</button>
+      </div>
+      <div id="qa-list" class="qa-list">
+        <div id="qa-empty" style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 30px 10px;">
+          No questions queued.<br>
+          <span style="font-size: 0.75rem; opacity: 0.7;">Viewer questions will appear here automatically.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT TAB -->
+    <div id="tab-chat" class="tab-content">
+      <div id="chat-container">
+        <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-top: 20px;">
+          Listening for live chat messages...
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS TAB -->
+    <div id="tab-stats" class="tab-content">
+      <!-- Live Hype Meter Card -->
+      <div class="stat-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div class="stat-title">🔥 Live Hype Velocity</div>
+          <div id="stat-hype-rate" style="font-weight: 800; font-size: 0.95rem; color: #fdba74;">0.0 / 3.5 msgs/s</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.08); height: 10px; border-radius: 5px; margin-top: 8px; overflow: hidden;">
+          <div id="hype-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #f59e0b, #ef4444); transition: width 0.3s ease;"></div>
+        </div>
+        <div id="stat-hype-status" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;">Rate Normal</div>
+      </div>
+
+      <!-- Clutch Mode Card -->
+      <div class="stat-card">
+        <div class="stat-title">🛡️ CS2 & Clutch State</div>
+        <div id="stat-clutch-status" class="stat-value" style="font-size: 1.05rem; color: var(--text);">IDLE</div>
+        <div id="stat-clutch-detail" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Waiting for CS2 match telemetry...</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-title">Stream Bitrate</div>
+          <div id="stat-bitrate" class="stat-value">0 kbps</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Stream FPS</div>
+          <div id="stat-fps" class="stat-value">0.0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Dropped Frames</div>
+          <div id="stat-dropped" class="stat-value" style="color: var(--success);">0 (0.0%)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Uptime</div>
+          <div id="stat-uptime" class="stat-value">00:00:00</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let currentTab = 'deck';
+    let pin = localStorage.getItem('kv_companion_pin') || '';
+    let eventSource = null;
+    let qaQuestions = [];
+
+    function switchTab(name) {
+      currentTab = name;
+      const tabs = ['deck', 'qa', 'chat', 'stats'];
+      document.querySelectorAll('.nav-tab').forEach((t, i) => {
+        t.classList.toggle('active', tabs[i] === name);
+      });
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(`tab-${name}`).classList.add('active');
+
+      if (name === 'qa') {
+        loadQAQuestions();
+      }
+    }
+
+    function savePin() {
+      const val = document.getElementById('pin-input').value.trim();
+      pin = val;
+      localStorage.setItem('kv_companion_pin', pin);
+      document.getElementById('pin-modal').style.display = 'none';
+      connectEvents();
+    }
+
+    function triggerAction(action, params = {}) {
+      fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin, action, params })
+      })
+      .then(res => {
+        if (res.status === 401) {
+          document.getElementById('pin-modal').style.display = 'flex';
+        }
+        return res.json();
+      })
+      .catch(err => console.error('Action error:', err));
+    }
+
+    /* Q&A API & UI Handlers */
+    function loadQAQuestions() {
+      fetch('/api/qa')
+        .then(res => res.json())
+        .then(questions => {
+          qaQuestions = questions;
+          renderQAQuestions();
+        })
+        .catch(err => console.error('Load QA error:', err));
+    }
+
+    function answerQuestion(id) {
+      fetch('/api/qa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin, action: 'answer', id })
+      })
+      .then(res => res.json())
+      .then(() => {
+        const q = qaQuestions.find(item => item.id === id);
+        if (q) q.is_answered = true;
+        renderQAQuestions();
+      })
+      .catch(err => console.error('Answer QA error:', err));
+    }
+
+    function dismissQuestion(id) {
+      fetch('/api/qa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin, action: 'dismiss', id })
+      })
+      .then(res => res.json())
+      .then(() => {
+        qaQuestions = qaQuestions.filter(item => item.id !== id);
+        renderQAQuestions();
+      })
+      .catch(err => console.error('Dismiss QA error:', err));
+    }
+
+    function clearQuestions() {
+      fetch('/api/qa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin, action: 'clear' })
+      })
+      .then(res => res.json())
+      .then(() => {
+        qaQuestions = [];
+        renderQAQuestions();
+      })
+      .catch(err => console.error('Clear QA error:', err));
+    }
+
+    function renderQAQuestions() {
+      const listEl = document.getElementById('qa-list');
+      const badgeEl = document.getElementById('qa-tab-badge');
+      const activeQuestions = qaQuestions.filter(q => !q.is_dismissed);
+      const unansweredCount = activeQuestions.filter(q => !q.is_answered).length;
+
+      if (unansweredCount > 0) {
+        badgeEl.style.display = 'inline-block';
+        badgeEl.innerText = unansweredCount;
+      } else {
+        badgeEl.style.display = 'none';
+      }
+
+      if (activeQuestions.length === 0) {
+        listEl.innerHTML = `
+          <div id="qa-empty" style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 30px 10px;">
+            No questions queued.<br>
+            <span style="font-size: 0.75rem; opacity: 0.7;">Viewer questions will appear here automatically.</span>
+          </div>`;
+        return;
+      }
+
+      listEl.innerHTML = '';
+      activeQuestions.forEach(q => {
+        const card = document.createElement('div');
+        card.className = `qa-card ${q.is_answered ? 'answered' : ''}`;
+        
+        let platTag = 'DEM';
+        if (q.platform === 'twitch') platTag = 'TWI';
+        else if (q.platform === 'kick') platTag = 'KIC';
+        else if (q.platform === 'youtube') platTag = 'YOU';
+
+        card.innerHTML = `
+          <div class="qa-top">
+            <span class="qa-user">
+              <span class="plat-badge plat-${q.platform || 'demo'}">${platTag}</span>
+              ${q.author || 'Viewer'}
+            </span>
+            <span class="qa-time">${q.timestamp || ''}</span>
+          </div>
+          <div class="qa-text">${q.text}</div>
+          <div class="qa-actions">
+            ${q.is_answered ? 
+              '<span style="font-size: 0.8rem; color: #4ade80; font-weight: 700;">✓ Answered</span>' :
+              `<button class="qa-btn qa-btn-answer" onclick="answerQuestion('${q.id}')">✓ Answered</button>`
+            }
+            <button class="qa-btn qa-btn-dismiss" onclick="dismissQuestion('${q.id}')">✕ Dismiss</button>
+          </div>
+        `;
+        listEl.appendChild(card);
+      });
+    }
+
+    function updateHypeUI(hype) {
+      if (!hype) return;
+      const vel = hype.velocity || 0.0;
+      const thresh = hype.threshold || 3.5;
+      const isSpike = hype.is_spike || false;
+
+      document.getElementById('stat-hype-rate').innerText = `${vel.toFixed(1)} / ${thresh.toFixed(1)} msgs/s`;
+      const pct = Math.min(100, Math.round((vel / (thresh * 1.5)) * 100));
+      const bar = document.getElementById('hype-bar-fill');
+      bar.style.width = `${pct}%`;
+
+      const statusEl = document.getElementById('stat-hype-status');
+      if (isSpike) {
+        statusEl.innerText = '🔥 HYPE SPIKE ACTIVE!';
+        statusEl.style.color = '#ef4444';
+        statusEl.style.fontWeight = 'bold';
+      } else if (vel >= thresh * 0.7) {
+        statusEl.innerText = '⚡ Hype Building';
+        statusEl.style.color = '#f59e0b';
+        statusEl.style.fontWeight = '600';
+      } else {
+        statusEl.innerText = 'Rate Normal';
+        statusEl.style.color = 'var(--text-muted)';
+        statusEl.style.fontWeight = 'normal';
+      }
+    }
+
+    function updateClutchUI(clutch) {
+      if (!clutch) return;
+      const pill = document.getElementById('clutch-status-pill');
+      const bombPill = document.getElementById('bomb-status-pill');
+      const statusEl = document.getElementById('stat-clutch-status');
+      const detailEl = document.getElementById('stat-clutch-detail');
+
+      const isActive = clutch.is_active || (clutch.state && clutch.state.toLowerCase() === 'clutch');
+      if (isActive) {
+        pill.style.display = 'inline-flex';
+        pill.innerText = `🛡️ CLUTCH (${clutch.reason || 'ACTIVE'})`;
+        statusEl.innerText = `CLUTCH ACTIVE (${clutch.reason || 'SILENCE'})`;
+        statusEl.style.color = '#f97316';
+      } else {
+        pill.style.display = 'none';
+        statusEl.innerText = (clutch.state || 'IDLE').toUpperCase();
+        statusEl.style.color = 'var(--text)';
+      }
+
+      if (clutch.bomb === 'planted') {
+        bombPill.style.display = 'inline-flex';
+        detailEl.innerText = '💣 Bomb has been planted!';
+      } else {
+        bombPill.style.display = 'none';
+        detailEl.innerText = isActive ? `Clutch reason: ${clutch.reason}` : 'Game telemetry idle';
+      }
+    }
+
+    function updateStatusUI(st) {
+      if (st.pin_required && !pin) {
+        document.getElementById('pin-modal').style.display = 'flex';
+      }
+
+      // Lock button
+      const btnLock = document.getElementById('btn-lock');
+      btnLock.classList.toggle('active', st.locked);
+      document.getElementById('sub-lock').innerText = st.locked ? 'Locked' : 'Edit Mode';
+
+      // Clickthrough
+      const btnClick = document.getElementById('btn-clickthru');
+      btnClick.classList.toggle('active', st.click_through);
+      document.getElementById('sub-clickthru').innerText = st.click_through ? 'Passthrough' : 'Disabled';
+
+      // OBS Stream
+      const btnStream = document.getElementById('btn-stream');
+      btnStream.classList.toggle('live', st.obs_streaming);
+      document.getElementById('sub-stream').innerText = st.obs_streaming ? 'LIVE' : 'Offline';
+
+      // OBS Record
+      const btnRecord = document.getElementById('btn-record');
+      btnRecord.classList.toggle('live', st.obs_recording);
+      document.getElementById('sub-record').innerText = st.obs_recording ? 'RECORDING' : 'Stopped';
+
+      // Stats
+      document.getElementById('stat-bitrate').innerText = `${st.bitrate || 0} kbps`;
+      document.getElementById('stat-fps').innerText = (st.fps || 0).toFixed(1);
+      const droppedEl = document.getElementById('stat-dropped');
+      const dropped = st.dropped_frames || 0;
+      droppedEl.innerText = `${dropped}`;
+      droppedEl.style.color = dropped > 100 ? 'var(--danger)' : (dropped > 0 ? 'var(--warning)' : 'var(--success)');
+      document.getElementById('stat-uptime').innerText = st.uptime || '00:00:00';
+
+      if (st.hype) updateHypeUI(st.hype);
+      if (st.clutch) updateClutchUI(st.clutch);
+
+      // Scenes
+      if (st.scenes && st.scenes.length > 0) {
+        document.getElementById('scenes-box').style.display = 'block';
+        const list = document.getElementById('scenes-list');
+        list.innerHTML = '';
+        st.scenes.forEach(sc => {
+          const btn = document.createElement('button');
+          btn.className = 'status-pill';
+          btn.style.cursor = 'pointer';
+          btn.style.border = sc === st.current_scene ? '1px solid var(--accent)' : '1px solid rgba(255,255,255,0.1)';
+          btn.style.background = sc === st.current_scene ? 'rgba(0,229,255,0.2)' : 'rgba(255,255,255,0.05)';
+          btn.style.color = sc === st.current_scene ? 'var(--accent)' : 'var(--text)';
+          btn.innerText = sc;
+          btn.onclick = () => triggerAction('obs_set_scene', { scene_name: sc });
+          list.appendChild(btn);
+        });
+      }
+    }
+
+    function addChatMessage(msg) {
+      const container = document.getElementById('chat-container');
+      const row = document.createElement('div');
+      row.className = 'chat-row';
+
+      let platTag = '';
+      if (msg.platform === 'twitch') platTag = '<span class="plat-badge plat-twitch">TW</span>';
+      else if (msg.platform === 'kick') platTag = '<span class="plat-badge plat-kick">KICK</span>';
+      else if (msg.platform === 'youtube') platTag = '<span class="plat-badge plat-youtube">YT</span>';
+
+      const userColor = msg.color || '#00e5ff';
+      row.innerHTML = `${platTag}<span class="user-name" style="color: ${userColor};">${msg.username}:</span> <span>${msg.message}</span>`;
+      container.appendChild(row);
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function connectEvents() {
+      if (eventSource) eventSource.close();
+
+      eventSource = new EventSource('/api/events');
+      const dot = document.getElementById('conn-dot');
+      const text = document.getElementById('conn-text');
+
+      eventSource.onopen = () => {
+        dot.className = 'status-dot online';
+        text.innerText = 'Connected';
+      };
+
+      eventSource.addEventListener('status', (e) => {
+        try {
+          const st = JSON.parse(e.data);
+          updateStatusUI(st);
+        } catch (err) {}
+      });
+
+      eventSource.addEventListener('chat', (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          addChatMessage(msg);
+        } catch (err) {}
+      });
+
+      eventSource.addEventListener('qa', (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.questions) {
+            qaQuestions = data.questions;
+            renderQAQuestions();
+          }
+        } catch (err) {}
+      });
+
+      eventSource.addEventListener('qa_update', (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.questions) {
+            qaQuestions = data.questions;
+            renderQAQuestions();
+          }
+        } catch (err) {}
+      });
+
+      eventSource.addEventListener('hype', (e) => {
+        try {
+          const hype = JSON.parse(e.data);
+          updateHypeUI(hype);
+        } catch (err) {}
+      });
+
+      eventSource.addEventListener('clutch', (e) => {
+        try {
+          const clutch = JSON.parse(e.data);
+          updateClutchUI(clutch);
+        } catch (err) {}
+      });
+
+      eventSource.onerror = () => {
+        dot.className = 'status-dot';
+        text.innerText = 'Reconnecting...';
+      };
+    }
+
+    window.onload = () => {
+      fetch('/api/status')
+        .then(res => res.json())
+        .then(st => {
+          updateStatusUI(st);
+          if (st.pin_required && !pin) {
+            document.getElementById('pin-modal').style.display = 'flex';
+          } else {
+            connectEvents();
+          }
+        })
+        .catch(() => connectEvents());
+
+      loadQAQuestions();
+    };
+  </script>
+</body>
+</html>

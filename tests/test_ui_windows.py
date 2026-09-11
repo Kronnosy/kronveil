@@ -53,4 +53,14 @@ def test_settings_window_interactions(qapp, tmp_path):
     win.lock_cb.setChecked(True)
     assert cfg.settings.locked is True
 
+    # Test new Widgets & Profiles controls
+    assert win.ed_enable_cb.isChecked() is True
+    win.ed_enable_cb.setChecked(False)
+    assert cfg.settings.event_deck_enabled is False
+
+    assert win.auto_profile_cb.isChecked() is True
+    win.auto_profile_cb.setChecked(False)
+    assert cfg.settings.auto_profile_enabled is False
+
     win.close()
+

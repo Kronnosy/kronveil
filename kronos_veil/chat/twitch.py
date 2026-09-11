@@ -200,6 +200,7 @@ class TwitchChatProvider(ChatProvider):
                         message=message_text,
                         color=color,
                         badges=badges,
+                        platform="twitch",
                     )
                     self.message_received.emit(chat_msg)
             except Exception as e:

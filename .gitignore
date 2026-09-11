@@ -40,5 +40,31 @@ htmlcov/
 .idea/
 Thumbs.db
 Desktop.ini
+.DS_Store
 *.swp
 *.swo
+
+# Secrets & Local Configurations
+.env
+.env.*
+config.json
+*.local.json
+*.log
+logs/
+
+# Game State Integration generated local configs
+gamestate_integration_*.cfg
+
+# Cache & Tooling
+.ruff_cache/
+.mypy_cache/
+
+# AI Agent Workspace
+.agents/
+
+# Plans & Roadmaps
+*-plan.md
+*roadmap*.md
+*.plan.md
+plans/
+

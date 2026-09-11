@@ -25,6 +25,7 @@ class ChatMessage:
     badges: List[str] = field(default_factory=list)
     is_system: bool = False
     is_test: bool = False
+    platform: str = "demo"  # "twitch", "kick", "youtube", "demo"
 
 
 class ChatStatus(str, Enum):

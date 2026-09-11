@@ -1,5 +1,11 @@
 # Kronos Veil (KV)
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python: 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![GUI: PySide6](https://img.shields.io/badge/GUI-PySide6-41CD52.svg?logo=qt&logoColor=white)](https://www.qt.io/)
+[![Platform: Windows](https://img.shields.io/badge/Platform-Windows_10_%2F_11-0078D6.svg?logo=windows&logoColor=white)](https://www.microsoft.com/windows)
+[![Tests: 140 Passing](https://img.shields.io/badge/Tests-140_Passing-brightgreen.svg)]()
+
 > **"Your chat. Your screen. Invisible to stream."**
 
 **Kronos Veil** is a lightweight, private livestream chat overlay designed specifically for streamers with a single monitor. It renders chat transparently on top of full-screen borderless games and desktop applications while excluding the overlay window from OBS and screen capture using native Windows Desktop Window Manager (DWM) display affinity APIs.
@@ -16,10 +22,21 @@
 - **Optional Click-Through:** Mouse clicks pass straight through the overlay to underlying games (`WS_EX_TRANSPARENT`).
 - **Global Hotkey Recovery:** Toggle between Edit Mode and Locked Mode with `Ctrl + Shift + F10` even when playing a game.
 - **Persistent System Tray:** Never get locked out; control modes, privacy, and settings from the Windows taskbar notification area.
+- **Streamer UI Studio & 1-Click Themes:** Real-time interactive Live Preview sandbox in Settings with 1-click broadcast themes (Cyberpunk Cyan, Obsidian Stealth, Frosted Slate, Neon Sunset, Retro Terminal) and Card, Bubble, or Clean message presentation styles.
+- **In-Game Toast Deck & Mention Alerts:** Ephemeral, capture-protected floating notifications for OBS stream status, dropped frame spikes, and glowing streamer mention highlights.
+- **Standalone Modular Mini-HUD Window:** An independent, capture-protected floating telemetry HUD showing live stream status, recording state, uptime, dynamic bitrate health gauge, and dropped frames warnings.
+- **Stream Events Deck & Live Goal Bar:** Independent capture-protected floating widget tracking latest Follower, Subscriber, Bits, and Tips along with an animated live goal progress bar (tokenless demo cycle + optional StreamElements JWT).
+- **Per-Game Auto-Switching Profiles:** Automatically shifts overlay, HUD, and widget positions and sizes depending on which game is focused (Valorant, CS2, League of Legends, or custom), powered by non-invasive Win32 ctypes window detection.
+- **Emote & Badge Rendering Engine:** Built-in support for Twitch and 7TV popular emotes (KEKW, Pog, monkaS, etc.) and user badges (Broadcaster, Moderator, VIP, Sub), with background async downloading and LRU disk caching.
 - **Chat Provider Architecture:**
   - **Local Demo Provider:** Simulates realistic viewer chat and reactions out of the box with zero setup or credentials required.
   - **Twitch Live Chat:** Direct SSL IRC connection (`irc.chat.twitch.tv:6697`) supporting anonymous read-only access—no developer account or OAuth tokens required for public channels.
+  - **Kick Live Chat:** Direct Pusher WebSocket integration for real-time Kick.com chat without requiring API keys or authentication.
   - **YouTube Live Chat:** Architecture-ready integration via YouTube Data API v3.
+- **Multistream Unified Chat & Smart Filters (v1.2):** Connect to Twitch, Kick, and YouTube simultaneously into one unified chronological feed with platform badges (`TW`, `KICK`, `YT`), automatic bot command suppression (`!commands`), and rapid duplicate spam protection.
+- **Mobile LAN Web Companion & Touch Stream Deck (v1.2):** Zero-app local HTTP + SSE server allowing any smartphone or tablet on the same Wi-Fi to serve as an interactive touch Stream Deck (lock toggle, click-through, OBS stream/record, scene switcher), real-time live chat reader, and telemetry display with instant QR camera pairing and PIN security.
+- **Windows Auto-Start on Boot (v1.2):** Non-elevated auto-start registration via Windows HKCU Run registry key for background boot execution.
+- **OBS Studio WebSocket v5 Integration:** Direct connection to OBS (`obs-websocket` 5.x) monitoring bitrate health and alerting on dropped frames in real-time.
 - **Multi-Monitor Safe:** Automatically detects off-screen coordinates on startup and repositions within visible monitor bounds.
 - **Zero Injections / Non-Invasive:** No DLL injection, no hooking, no game memory tampering, no anti-cheat triggers, and no administrator privileges required.
 
@@ -53,8 +70,8 @@
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/kronos-veil.git
-   cd kronos-veil
+   git clone https://github.com/Kronnosy/kronveil.git
+   cd kronveil
    ```
 
 2. **Create and activate a virtual environment:**
@@ -147,45 +164,69 @@ pytest -v
 ## Architecture & Project Structure
 
 ```text
-kronos-veil/
+kronveil/
 ├── main.py                     # Application entry point & CLI parser
 ├── requirements.txt            # Package dependencies
 ├── README.md                   # Documentation & OBS guidance
+├── LICENSE                     # MIT License
 ├── KronosVeil.spec             # PyInstaller standalone executable specification
 │
 ├── kronos_veil/
 │   ├── __init__.py             # Version and app metadata
 │   ├── app.py                  # Core application orchestrator
+│   ├── autostart.py            # Windows HKCU Run auto-start manager
 │   ├── config.py               # JSON settings manager & multi-monitor recovery
-│   ├── hotkeys.py              # Win32 RegisterHotKey background worker
+│   ├── event_deck.py           # Stream Events Deck & live goal progress bar
+│   ├── hotkeys.py              # Win32 RegisterHotKey background listener
+│   ├── hud.py                  # Modular Mini-HUD telemetry window
 │   ├── overlay.py              # Frameless transparent overlay & message widgets
-│   ├── settings_window.py      # Modern dark HUD control panel
+│   ├── profiles.py             # Per-game auto-switching profiles & window detector
+│   ├── question_deck.py        # Smart Q&A Deck window for audience questions
+│   ├── settings_window.py      # Streamer UI Studio & configuration dialog
+│   ├── themes.py               # 1-Click broadcast theme presets
+│   ├── toast.py                # In-game notification toast alerts
 │   ├── tray.py                 # Windows system tray integration & menu
 │   │
-│   ├── windows/
+│   ├── chat/
 │   │   ├── __init__.py
-│   │   ├── capture_protection.py # SetWindowDisplayAffinity & WDA_EXCLUDEFROMCAPTURE
-│   │   └── window_styles.py      # Win32 WS_EX_TRANSPARENT & HWND_TOPMOST
+│   │   ├── aggregator.py       # Multistream unified chat aggregator
+│   │   ├── base.py             # ChatMessage dataclass & ChatProvider base
+│   │   ├── demo.py             # Offline simulation chat generator
+│   │   ├── emotes.py           # Twitch & 7TV emote resolution and LRU caching
+│   │   ├── filters.py          # Bot suppression & duplicate spam filters
+│   │   ├── hype.py             # Chat velocity analyzer & OBS auto-clip trigger
+│   │   ├── kick.py             # Pusher WebSocket Kick.com chat provider
+│   │   ├── questions.py        # Natural language question detector
+│   │   ├── twitch.py           # Anonymous SSL Twitch IRC provider
+│   │   └── youtube.py          # YouTube Live Data API provider
 │   │
-│   └── chat/
+│   ├── gsi/
+│   │   ├── __init__.py
+│   │   ├── clutch_manager.py   # CS2 Clutch Silence auto-dimming logic
+│   │   ├── installer.py        # CS2 cfg generator and auto-installer
+│   │   ├── models.py           # Valve GSI telemetry data models
+│   │   └── server.py           # Zero-injection local GSI HTTP server
+│   │
+│   ├── obs/
+│   │   ├── __init__.py
+│   │   └── client.py           # OBS Studio WebSocket v5 client & telemetry
+│   │
+│   ├── web/
+│   │   ├── __init__.py
+│   │   ├── companion.py        # Mobile LAN HTTP + SSE Web Companion server
+│   │   ├── qr.py               # Pure-Python SVG QR pairing code generator
+│   │   └── templates/
+│   │       └── index.html      # Touch-friendly Stream Deck mobile web app
+│   │
+│   └── windows/
 │       ├── __init__.py
-│       ├── base.py             # ChatMessage dataclass & ChatProvider base
-│       ├── demo.py             # Offline simulation chat generator
-│       ├── twitch.py           # Anonymous SSL Twitch IRC provider
-│       └── youtube.py          # YouTube Live Data API provider
+│       ├── capture_protection.py # WDA_EXCLUDEFROMCAPTURE manager
+│       └── window_styles.py      # Win32 WS_EX_TRANSPARENT & HWND_TOPMOST
 │
 ├── assets/
 │   └── icon.png                # High-DPI application icon
 │
-└── tests/                      # Automated test suite
-    ├── conftest.py
-    ├── test_capture_protection.py
-    ├── test_chat_providers.py
-    ├── test_config.py
-    ├── test_hotkeys.py
-    ├── test_overlay_logic.py
-    ├── test_ui_windows.py
-    └── test_window_styles.py
+└── tests/                      # Automated test suite (140 tests)
 ```
 
 ---

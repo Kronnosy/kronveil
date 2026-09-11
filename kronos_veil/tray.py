@@ -49,8 +49,13 @@ class TrayManager(QObject):
     toggle_click_through_requested = Signal()
     toggle_capture_protection_requested = Signal()
     open_settings_requested = Signal()
+    toggle_hud_requested = Signal()
+    toggle_event_deck_requested = Signal()
+    toggle_qa_deck_requested = Signal()
+    switch_profile_requested = Signal(str)
     send_demo_message_requested = Signal()
     clear_chat_requested = Signal()
+    copy_companion_url_requested = Signal()
     exit_requested = Signal()
 
     def __init__(self, parent: Optional[QObject] = None) -> None:
@@ -77,7 +82,7 @@ class TrayManager(QObject):
         )
 
         # Title / Brand Action
-        title_action = QAction("✦ Kronos Veil v1.0", self.menu)
+        title_action = QAction("✦ Kronos Veil v1.3", self.menu)
         title_action.setEnabled(False)
         self.menu.addAction(title_action)
         self.menu.addSeparator()
@@ -112,6 +117,32 @@ class TrayManager(QObject):
         self.act_capture.triggered.connect(self.toggle_capture_protection_requested.emit)
         self.menu.addAction(self.act_capture)
 
+        # Modular Windows
+        self.act_hud = QAction("Toggle Mini-HUD Bar", self.menu)
+        self.act_hud.setCheckable(True)
+        self.act_hud.triggered.connect(self.toggle_hud_requested.emit)
+        self.menu.addAction(self.act_hud)
+
+        self.act_event_deck = QAction("Toggle Stream Events Deck", self.menu)
+        self.act_event_deck.setCheckable(True)
+        self.act_event_deck.triggered.connect(self.toggle_event_deck_requested.emit)
+        self.menu.addAction(self.act_event_deck)
+
+        self.act_qa_deck = QAction("Toggle Smart Q&A Deck", self.menu)
+        self.act_qa_deck.setCheckable(True)
+        self.act_qa_deck.triggered.connect(self.toggle_qa_deck_requested.emit)
+        self.menu.addAction(self.act_qa_deck)
+
+        self.menu.addSeparator()
+
+        # Profiles Submenu
+        self.profiles_menu = QMenu("🕹️ Game Profiles", self.menu)
+        for prof_name in ["Default", "Valorant", "League of Legends", "Counter-Strike 2"]:
+            act_prof = QAction(prof_name, self.profiles_menu)
+            act_prof.triggered.connect(lambda checked=False, p=prof_name: self.switch_profile_requested.emit(p))
+            self.profiles_menu.addAction(act_prof)
+        self.menu.addMenu(self.profiles_menu)
+
         self.menu.addSeparator()
 
         # Chat actions
@@ -122,6 +153,10 @@ class TrayManager(QObject):
         act_clear = QAction("Clear Chat", self.menu)
         act_clear.triggered.connect(self.clear_chat_requested.emit)
         self.menu.addAction(act_clear)
+
+        act_companion = QAction("📱 Copy Mobile Companion URL", self.menu)
+        act_companion.triggered.connect(self.copy_companion_url_requested.emit)
+        self.menu.addAction(act_companion)
 
         act_settings = QAction("Settings...", self.menu)
         act_settings.triggered.connect(self.open_settings_requested.emit)
@@ -136,9 +171,20 @@ class TrayManager(QObject):
 
         self.tray_icon.setContextMenu(self.menu)
 
-    def update_states(self, locked: bool, click_through: bool, capture_protected: bool) -> None:
+    def update_states(
+        self,
+        locked: bool,
+        click_through: bool,
+        capture_protected: bool,
+        hud_visible: bool = True,
+        event_deck_visible: bool = True,
+        qa_deck_visible: bool = False,
+    ) -> None:
         """Updates checkmarks and state hints in tray menu."""
         self.act_clickthrough.setChecked(click_through)
         self.act_capture.setChecked(capture_protected)
+        self.act_hud.setChecked(hud_visible)
+        self.act_event_deck.setChecked(event_deck_visible)
+        self.act_qa_deck.setChecked(qa_deck_visible)
         self.act_edit.setEnabled(locked)
         self.act_lock.setEnabled(not locked)

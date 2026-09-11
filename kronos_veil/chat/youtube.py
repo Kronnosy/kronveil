@@ -158,6 +158,7 @@ class YouTubeChatProvider(ChatProvider):
                         username=user_name,
                         message=msg_text,
                         color=color,
+                        platform="youtube",
                     )
                     self.message_received.emit(msg)
 

@@ -185,3 +185,6 @@ class CaptureProtectionManager:
             )
 
         return self.status, self.last_error_message
+
+    # Compatibility alias
+    apply_capture_protection = set_protection
