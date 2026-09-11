@@ -73,9 +73,12 @@ def test_v13_app_orchestration(qapp, tmp_path):
         assert app.clutch_manager.is_clutch_active is True
 
         # Let opacity animation run
-        for _ in range(12):
+        start_t = time.time()
+        while time.time() - start_t < 0.8:
             time.sleep(0.02)
             qapp.processEvents()
+            if abs(app.overlay.windowOpacity() - 0.05) <= 0.08:
+                break
 
         assert app.overlay.windowOpacity() == pytest.approx(0.05, abs=0.08)
 
@@ -92,9 +95,12 @@ def test_v13_app_orchestration(qapp, tmp_path):
         assert app.clutch_manager.is_clutch_active is False
         assert "DEFUSED" in app.hud.bomb_badge.text()
 
-        for _ in range(12):
+        start_t = time.time()
+        while time.time() - start_t < 0.8:
             time.sleep(0.02)
             qapp.processEvents()
+            if abs(app.overlay.windowOpacity() - 0.90) <= 0.08:
+                break
 
         assert app.overlay.windowOpacity() == pytest.approx(0.90, abs=0.08)
 

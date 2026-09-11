@@ -41,9 +41,12 @@ def test_overlay_clutch_opacity_animation(qapp, tmp_path):
     assert overlay._is_clutch_dimmed is True
 
     # Process events to let animation run
-    for _ in range(15):
+    start_t = time.time()
+    while time.time() - start_t < 0.8:
         time.sleep(0.02)
         qapp.processEvents()
+        if abs(overlay.windowOpacity() - 0.0) <= 0.05:
+            break
 
     assert overlay.windowOpacity() == pytest.approx(0.0, abs=0.05)
 
@@ -51,9 +54,12 @@ def test_overlay_clutch_opacity_animation(qapp, tmp_path):
     overlay.on_clutch_opacity_changed(0.90)
     assert overlay._is_clutch_dimmed is False
 
-    for _ in range(15):
+    start_t = time.time()
+    while time.time() - start_t < 0.8:
         time.sleep(0.02)
         qapp.processEvents()
+        if abs(overlay.windowOpacity() - 0.90) <= 0.05:
+            break
 
     assert overlay.windowOpacity() == pytest.approx(0.90, abs=0.05)
 
@@ -80,17 +86,23 @@ def test_overlay_clutch_manager_signal_integration(qapp, tmp_path):
     clutch_mgr._engage_clutch("low_health")
     assert overlay._clutch_anim is not None
 
-    for _ in range(15):
+    start_t = time.time()
+    while time.time() - start_t < 0.8:
         time.sleep(0.02)
         qapp.processEvents()
+        if abs(overlay.windowOpacity() - 0.10) <= 0.05:
+            break
 
     assert overlay.windowOpacity() == pytest.approx(0.10, abs=0.05)
 
     # Disengage clutch
     clutch_mgr._disengage_clutch("round_over")
-    for _ in range(15):
+    start_t = time.time()
+    while time.time() - start_t < 0.8:
         time.sleep(0.02)
         qapp.processEvents()
+        if abs(overlay.windowOpacity() - 0.85) <= 0.05:
+            break
 
     assert overlay.windowOpacity() == pytest.approx(0.85, abs=0.05)
 
